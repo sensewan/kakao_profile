@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kakao_profile/src/controller/ProfileController.dart';
 
-class Profile extends StatelessWidget {
+class Profile extends GetView<ProfileController> {
   const Profile({Key key}) : super(key: key);
 
 
@@ -20,7 +21,7 @@ class Profile extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () {
-                print("프로필 편집 클릭함");
+                controller.toggleEditProfile();
               },
               child: Row(
                 children: [
@@ -50,30 +51,34 @@ class Profile extends StatelessWidget {
 
   // ################## 푸터 부분 ##############
   Widget _footer(){
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration( // 가로 줄 하나 넣기
-          border: Border(
-            top: BorderSide(
-              width: 1,
-              color: Colors.white.withOpacity(0.4)
+    return Obx(()=>
+      // isEditMyProfile의 bool 값에 따라 화면 보이게 히기
+      controller.isEditMyProfile.value
+      ? Container()
+      :Positioned(
+        bottom: 0,
+        left: 0,
+        right: 0,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration( // 가로 줄 하나 넣기
+            border: Border(
+              top: BorderSide(
+                width: 1,
+                color: Colors.white.withOpacity(0.4)
+              ),
             ),
           ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _oneButton(Icons.chat_bubble, "나와의 채팅", (){}),
+              _oneButton(Icons.edit, "프로필 편집", controller.toggleEditProfile),  // 프로필 편집 클릭하면 -> bool값 변경시켜서 -> 편집가능하게 하기
+              _oneButton(Icons.chat_bubble_outline, "카카오 스토리", (){}),
+            ],
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _oneButton(Icons.chat_bubble, "나와의 채팅", (){}),
-            _oneButton(Icons.edit, "프로필 편집", (){}),
-            _oneButton(Icons.chat_bubble_outline, "카카오 스토리", (){}),
-          ],
-        ),
-      ),
-    );
+      ),);
   }
 
   Widget _oneButton(IconData icon, String title, Function inOntap) {
@@ -94,21 +99,22 @@ class Profile extends StatelessWidget {
 
 
 
-  // ############# 프로필 이미지 부분 ###############
+  // ############# 프로필 이미지 및 네임, 설명 부분 ###############
   Widget _myProfile() {
     return Positioned(
-      bottom: 120,
-      left: 0,
-      right: 0,
-      child: Container(
-        height: 200,
-        child: Column(
-          children: [
-            _profileImage(),
-            _profileInfo(),
-          ],
-        ),
-      )
+        bottom: 120,
+        left: 0,
+        right: 0,
+        child: Container(
+          height: 230,
+          child: Obx(()=>
+            Column(
+              children: [
+                _profileImage(),
+                controller.isEditMyProfile.value ? _editProfileInfo() : _profileInfo(),
+              ],
+          ),
+        ),),
     );
   }
 
@@ -117,12 +123,41 @@ class Profile extends StatelessWidget {
     return Container(
       width: 120,
       height: 120,
-      child: ClipRRect(  // 이미지 모서리 둥글게 하기 위해 사용
-        borderRadius: BorderRadius.circular(40),
-        child: Image.network(
-          "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
-          fit: BoxFit.cover, // 이미지 box에 꽉 채우기
-        ),
+      child: Stack(
+        children: [
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: Container(
+                width: 100,
+                height: 100,
+                child: Image.network(
+                  "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
+                  fit: BoxFit.cover, // 이미지 box에 꽉 채우기
+                ),
+              ),
+            ),
+          ),
+          controller.isEditMyProfile.value
+          ? Positioned(
+              left: 0, right: 0, top: 0, bottom: 0,
+              child: Container(
+                alignment: Alignment.bottomRight,
+                child: Container(
+                  padding: const EdgeInsets.all(7), // BoxDecoration의 circle을 icon보다 크게 하기 위해 padding 줌
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Icon(
+                    Icons.camera_alt,
+                    size: 20,
+                  ),
+                ),
+              ),
+            )
+          : Container(),
+        ],
       ),
     );
   }
@@ -149,6 +184,65 @@ class Profile extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+
+  // ########## 프로필 네임, 설명 수정 ###########
+  // 프로필 편집 클릭 후 -> 이동시 사용됨(텍스트들 보여줌)
+  Widget _editProfileInfo() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          //                ↱보여질 텍스트                   ↱ onTap기능
+          _partProfileInfo("데드리프트", (){}),
+          _partProfileInfo("3대 600가즈아", (){}),
+        ],
+      ),
+    );
+  }
+
+  // ## 프로필 편집으로 이동 되었을때 보여지는 텍스트들 ##
+  Widget _partProfileInfo(String value, Function ontap) {
+    return GestureDetector(
+      onTap: ontap,
+      child: Stack(
+        children: [
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  width: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(value,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+              right: 0,
+              bottom: 15,
+              child: Icon(
+                Icons.edit,
+                color: Colors.white,
+                size: 18,
+              )
+          ),
+        ],
+      ),
     );
   }
 
