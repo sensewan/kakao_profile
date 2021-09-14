@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kakao_profile/src/components/TextEditWidget.dart';
 import 'package:kakao_profile/src/controller/ProfileController.dart';
+import 'package:kakao_profile/src/pages/AnimatePage.dart';
 
 class Profile extends GetView<ProfileController> {
   const Profile({Key key}) : super(key: key);
@@ -74,7 +76,9 @@ class Profile extends GetView<ProfileController> {
             children: [
               _oneButton(Icons.chat_bubble, "나와의 채팅", (){}),
               _oneButton(Icons.edit, "프로필 편집", controller.toggleEditProfile),  // 프로필 편집 클릭하면 -> bool값 변경시켜서 -> 편집가능하게 하기
-              _oneButton(Icons.chat_bubble_outline, "카카오 스토리", (){}),
+              _oneButton(Icons.chat_bubble_outline, "카카오 스토리", (){
+                Get.to(AnimatePage());
+              }),
             ],
           ),
         ),
@@ -168,7 +172,7 @@ class Profile extends GetView<ProfileController> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text("데드리프트",
+          child: Text(controller.myProfile.value.name,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w400,
@@ -176,7 +180,7 @@ class Profile extends GetView<ProfileController> {
             ),
           ),
         ),
-        Text("3대 600가즈아",
+        Text(controller.myProfile.value.discription,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -193,13 +197,28 @@ class Profile extends GetView<ProfileController> {
   Widget _editProfileInfo() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          //                ↱보여질 텍스트                   ↱ onTap기능
-          _partProfileInfo("데드리프트", (){}),
-          _partProfileInfo("3대 600가즈아", (){}),
-        ],
-      ),
+      child: Obx(()=>
+        Column(
+          children: [
+            //                ↱보여질 텍스트                   ↱ onTap기능
+            _partProfileInfo(controller.myProfile.value.name, () async{
+              //                    ↱팝업 띄우기 -> 다른페이지 보여주기
+              String value= await Get.dialog(TextEditWidget(inText:controller.myProfile.value.name));
+              //     ↳Get.back를 통해 데이터 받기              ↳이동하면서 파라미터 넘겨주기
+              if(value != null) {
+                controller.updateName(value);
+              }
+            }),
+            _partProfileInfo(controller.myProfile.value.discription, () async{
+              //                    ↱팝업 띄우기 -> 다른페이지 보여주기
+              String value= await Get.dialog(TextEditWidget(inText:controller.myProfile.value.discription));
+              //     ↳Get.back를 통해 데이터 받기              ↳이동하면서 파라미터 넘겨주기
+              if(value != null) {
+                controller.updateDiscription(value);
+              }
+            }),
+          ],
+      ),),
     );
   }
 
@@ -267,6 +286,7 @@ class Profile extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomPadding: false, // 이걸하면 텍스트 수정페이지(TextEditWidget)에서-> 수정할 때 움직이지 않는다.
       backgroundColor: Color(0xff3f3f3f),
       body: Container(
         child: Stack(children: [
