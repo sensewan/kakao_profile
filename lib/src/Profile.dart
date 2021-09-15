@@ -139,7 +139,9 @@ class Profile extends GetView<ProfileController> {
   Widget _profileImage() {
     return GestureDetector(
       onTap: () {
-        controller.pickImage(ProfileImageType.Thumbnail);
+        if(controller.isEdituserModel.value){
+          controller.pickImage(ProfileImageType.Thumbnail);
+        }
       },
       child: Container(
         width: 120,
@@ -298,7 +300,9 @@ class Profile extends GetView<ProfileController> {
       top: 0, right: 0, bottom: 0, left: 0,   // 이렇게 다 0으로 주면 전체 영역을 잡는다.
       child: GestureDetector(
         onTap: () {
-          controller.pickImage(ProfileImageType.Background);
+          if(controller.isEdituserModel.value){
+            controller.pickImage(ProfileImageType.Background);
+          }
         },
         child: Obx(()=>
           Container(

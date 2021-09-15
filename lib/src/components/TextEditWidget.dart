@@ -48,7 +48,7 @@ class _TextEditWidgetState extends State<TextEditWidget> {
               //       ↱ result라는 이름으로 dialog에 argument전달하기 (입력한 텍스트 값)
               Get.back(result: _textEditingController.text);
             },
-            child: Text("완료2",
+            child: Text("완료",
               style: TextStyle(fontSize: 14, color: Colors.white),
             ),
           ),
