@@ -26,5 +26,24 @@ class UserModel {
   });
 
 
+  // userModel을 컨트롤러에서 초기화 할 때 주소 값의 변경으로 인해 초기화가 안되는 것을 방지하기 위해 사용
+  UserModel.clone(UserModel user) : this(
+    uid : user.uid,
+    docId : user.docId,
+    discription : user.discription,
+    avatarUrl: user.avatarUrl,
+    name : user.name,
+    backgroundUrl : user.backgroundUrl,
+    lastLoginTime : user.lastLoginTime,
+    createdTime : user.createdTime,
+  );
+
+
+  // 프로필 편집 취소했을 때 이미지 파일 초기화 하기
+  void initImageFile(){
+    avatarFile = null;
+    backgroundFile = null;
+  }
+
 
 }

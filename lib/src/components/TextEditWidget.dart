@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kakao_profile/src/controller/ProfileController.dart';
 
 class TextEditWidget extends StatefulWidget {
   const TextEditWidget({Key key, this.inText}) : super(key: key);
@@ -29,12 +30,13 @@ class _TextEditWidgetState extends State<TextEditWidget> {
         children: [
           GestureDetector(
             onTap: () {
+              ProfileController.to.clickEditProfile();
               Get.back();
             },
             child: Row(
               children: [
                 Icon(Icons.arrow_back_ios, color: Colors.white, size: 16,),
-                Text("프로필 편집",
+                Text("취소",
                   style: TextStyle(fontSize: 14, color: Colors.white),
                 ),
               ],
@@ -42,10 +44,11 @@ class _TextEditWidgetState extends State<TextEditWidget> {
           ),
           GestureDetector(
             onTap: () {
-              //       ↱ result라는 이름으로 argument전달하기 (입력한 텍스트 값)
+              ProfileController.to.clickEditProfile();
+              //       ↱ result라는 이름으로 dialog에 argument전달하기 (입력한 텍스트 값)
               Get.back(result: _textEditingController.text);
             },
-            child: Text("완료",
+            child: Text("완료2",
               style: TextStyle(fontSize: 14, color: Colors.white),
             ),
           ),
@@ -60,15 +63,19 @@ class _TextEditWidgetState extends State<TextEditWidget> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: TextField(
-          controller: _textEditingController,
+          controller: _textEditingController,  // 컨트롤러 등록해 놓으면 기본 텍스트 값이 들어간다.
           maxLength: 20,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 18, color: Colors.white),  // 글자 입력시 스타일
+
           decoration: InputDecoration(
             hintStyle: TextStyle(fontSize: 18, color: Colors.white),
             counterStyle: TextStyle(fontSize: 14, color: Colors.white),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white),
+            borderSide: BorderSide(color: Colors.blue),
+            ),
+            border: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.white),
             ),
           ),
         ),
@@ -87,6 +94,16 @@ class _TextEditWidgetState extends State<TextEditWidget> {
           _header(),
           Expanded(
             child: _editTextFiled(),
+          ),
+          TextButton(
+            onPressed: () {
+              ProfileController.to.clickEditProfile();
+              Get.back();
+            },
+            child: Text("close", style: TextStyle(fontSize: 20),),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xffEBAF64)),
+            ),
           ),
         ],
       ),

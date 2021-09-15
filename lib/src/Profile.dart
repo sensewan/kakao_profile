@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kakao_profile/src/components/TextEditWidget.dart';
+import 'package:kakao_profile/src/controller/ImageCropController.dart';
 import 'package:kakao_profile/src/controller/ProfileController.dart';
 import 'package:kakao_profile/src/pages/AnimatePage.dart';
 
@@ -16,37 +19,47 @@ class Profile extends GetView<ProfileController> {
       //    ↳ 현재 사용자 기기의 상태바의 크기를 구할 수 있다
       left: 0,
       right: 0,
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () {
-                controller.toggleEditProfile();
-              },
-              child: Row(
-                children: [
-                  Icon(Icons.arrow_back_ios, color: Colors.white, size: 16,),
-                  Text("프로필 편집",
+      child: Obx(()=>
+        Container(
+          padding: const EdgeInsets.all(15),
+          child: controller.isEdituserModel.value
+            ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: controller.rollback,
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back_ios, color: Colors.white, size: 16,),
+                      Text("프로필 편집",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: controller.save,
+                  child: Text("완료",
                     style: TextStyle(fontSize: 14, color: Colors.white),
                   ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                print("완료 클릭함");
+                ),
 
-              },
-              child: Text("완료",
-                style: TextStyle(fontSize: 14, color: Colors.white),
-              ),
-            ),
-
-          ],
-        ),
-      ),
+              ],
+            )
+            :Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(Icons.close_sharp, color: Colors.white,),
+                Row(
+                  children: [
+                    Icon(Icons.qr_code, color: Colors.white,),
+                    SizedBox(width: 10,),
+                    Icon(Icons.settings, color: Colors.white,),
+                  ],
+                )
+              ],
+            )
+        ),),
     );
   }
 
@@ -54,8 +67,8 @@ class Profile extends GetView<ProfileController> {
   // ################## 푸터 부분 ##############
   Widget _footer(){
     return Obx(()=>
-      // isEditMyProfile의 bool 값에 따라 화면 보이게 히기
-      controller.isEditMyProfile.value
+      // isEdituserModel의 bool 값에 따라 화면 보이게 히기
+      controller.isEdituserModel.value
       ? Container()
       :Positioned(
         bottom: 0,
@@ -104,7 +117,7 @@ class Profile extends GetView<ProfileController> {
 
 
   // ############# 프로필 이미지 및 네임, 설명 부분 ###############
-  Widget _myProfile() {
+  Widget _userModel() {
     return Positioned(
         bottom: 120,
         left: 0,
@@ -115,7 +128,7 @@ class Profile extends GetView<ProfileController> {
             Column(
               children: [
                 _profileImage(),
-                controller.isEditMyProfile.value ? _editProfileInfo() : _profileInfo(),
+                controller.isEdituserModel.value ? _editProfileInfo() : _profileInfo(),
               ],
           ),
         ),),
@@ -124,44 +137,54 @@ class Profile extends GetView<ProfileController> {
 
   // ### 프로필 이미지  ###
   Widget _profileImage() {
-    return Container(
-      width: 120,
-      height: 120,
-      child: Stack(
-        children: [
-          Center(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(40),
-              child: Container(
-                width: 100,
-                height: 100,
-                child: Image.network(
-                  "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
-                  fit: BoxFit.cover, // 이미지 box에 꽉 채우기
+    return GestureDetector(
+      onTap: () {
+        controller.pickImage(ProfileImageType.Thumbnail);
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        child: Stack(
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  child: controller.userModel.value.avatarFile == null
+                    ?Image.network(
+                      "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
+                      fit: BoxFit.cover, // 이미지 box에 꽉 채우기
+                    )
+                    :Image.file(
+                      controller.userModel.value.avatarFile,
+                      fit: BoxFit.cover,
+                    ),
                 ),
               ),
             ),
-          ),
-          controller.isEditMyProfile.value
-          ? Positioned(
-              left: 0, right: 0, top: 0, bottom: 0,
-              child: Container(
-                alignment: Alignment.bottomRight,
+            controller.isEdituserModel.value
+            ? Positioned(
+                left: 0, right: 0, top: 0, bottom: 0,
                 child: Container(
-                  padding: const EdgeInsets.all(7), // BoxDecoration의 circle을 icon보다 크게 하기 위해 padding 줌
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: Icon(
-                    Icons.camera_alt,
-                    size: 20,
+                  alignment: Alignment.bottomRight,
+                  child: Container(
+                    padding: const EdgeInsets.all(7), // BoxDecoration의 circle을 icon보다 크게 하기 위해 padding 줌
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 20,
+                    ),
                   ),
                 ),
-              ),
-            )
-          : Container(),
-        ],
+              )
+            : Container(),
+          ],
+        ),
       ),
     );
   }
@@ -172,7 +195,7 @@ class Profile extends GetView<ProfileController> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(controller.myProfile.value.name,
+          child: Text(controller.userModel.value.name,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w400,
@@ -180,7 +203,7 @@ class Profile extends GetView<ProfileController> {
             ),
           ),
         ),
-        Text(controller.myProfile.value.discription,
+        Text(controller.userModel.value.discription,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -201,17 +224,19 @@ class Profile extends GetView<ProfileController> {
         Column(
           children: [
             //                ↱보여질 텍스트                   ↱ onTap기능
-            _partProfileInfo(controller.myProfile.value.name, () async{
+            _partProfileInfo(controller.userModel.value.name, () async{
+              controller.clickEditProfile();
               //                    ↱팝업 띄우기 -> 다른페이지 보여주기
-              String value= await Get.dialog(TextEditWidget(inText:controller.myProfile.value.name));
+              String value= await Get.dialog(TextEditWidget(inText:controller.userModel.value.name));
               //     ↳Get.back를 통해 데이터 받기              ↳이동하면서 파라미터 넘겨주기
               if(value != null) {
                 controller.updateName(value);
               }
             }),
-            _partProfileInfo(controller.myProfile.value.discription, () async{
+            _partProfileInfo(controller.userModel.value.discription, () async{
+              controller.clickEditProfile();
               //                    ↱팝업 띄우기 -> 다른페이지 보여주기
-              String value= await Get.dialog(TextEditWidget(inText:controller.myProfile.value.discription));
+              String value= await Get.dialog(TextEditWidget(inText:controller.userModel.value.discription));
               //     ↳Get.back를 통해 데이터 받기              ↳이동하면서 파라미터 넘겨주기
               if(value != null) {
                 controller.updateDiscription(value);
@@ -273,12 +298,20 @@ class Profile extends GetView<ProfileController> {
       top: 0, right: 0, bottom: 0, left: 0,   // 이렇게 다 0으로 주면 전체 영역을 잡는다.
       child: GestureDetector(
         onTap: () {
-          print("백그라운드 클림됨!!");
+          controller.pickImage(ProfileImageType.Background);
         },
-        child: Container(
-          color: Colors.transparent,
+        child: Obx(()=>
+          Container(
+            color: Colors.transparent,
+            child: controller.userModel.value.backgroundFile == null
+              ?Container()
+              :Image.file(
+                controller.userModel.value.backgroundFile,
+                fit: BoxFit.cover,
+              ),
+            ),
         ),
-      )
+      ),
     );
   }
 
@@ -288,13 +321,20 @@ class Profile extends GetView<ProfileController> {
     return Scaffold(
       resizeToAvoidBottomPadding: false, // 이걸하면 텍스트 수정페이지(TextEditWidget)에서-> 수정할 때 움직이지 않는다.
       backgroundColor: Color(0xff3f3f3f),
-      body: Container(
-        child: Stack(children: [
-          _backgroundImage(),
-          _header(),
-          _myProfile(),
-          _footer(),
-        ],),
+      body: Obx(()=>
+        Container(
+          child: Stack(
+            children: [
+              _backgroundImage(),
+              // ↱ 프로필 편집 버튼 클릭시 -> header 부분 보여지거나 안 보여지게 하기
+              !controller.editProfileClick.value
+              ?_header()
+              :Container(),
+
+              _userModel(),
+              _footer(),
+          ],),
+        ),
       ),
     );
   }
