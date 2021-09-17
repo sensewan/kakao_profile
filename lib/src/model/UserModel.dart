@@ -46,4 +46,29 @@ class UserModel {
   }
 
 
+  UserModel.fromJson(Map<String, dynamic> json, String docId):
+        uid = json["uid"] as String,
+        docId = docId,
+        name = json["name"] == null ? "" : json["name"] as String,
+        discription = json["discription"] == null ? "" : json["discription"] as String,
+        avatarUrl = json["avatar_url"] as String,
+        backgroundUrl = json["background_url"] as String,
+        lastLoginTime = json["last_login_time"].toDate(),
+        createdTime = json["create_time"].toDate();
+
+
+  // DB저장을 위해..(카멜캐이싱 지원안함)
+  Map<String, dynamic> toMap(){
+    return {
+      "uid": this.uid,
+      "name": this.name,
+      "discription": this.discription,
+      "avatar_url": this.avatarUrl,
+      "background_url": this.backgroundUrl,
+      "last_login_time": this.lastLoginTime,
+      "create_time": this.createdTime,
+    };
+  }
+
+
 }

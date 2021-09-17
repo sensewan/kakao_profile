@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kakao_profile/src/App.dart';
-import 'package:kakao_profile/src/Profile.dart';
+import 'package:kakao_profile/src/pages/Profile.dart';
 import 'package:kakao_profile/src/controller/ImageCropController.dart';
 import 'package:kakao_profile/src/controller/ProfileController.dart';
 
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         Get.lazyPut<ProfileController>(() => ProfileController());
         Get.lazyPut<ImageCropController>(() => ImageCropController());
       }),
-      home: Profile(),
+      home: App(),
     );
   }
 }
