@@ -324,17 +324,35 @@ class Profile extends GetView<ProfileController> {
           }
         },
         child: Obx(()=>
-          Container(
-            color: Colors.transparent,
-            child: controller.userModel.value.backgroundFile == null
-              ?Container()
-              :Image.file(
-                controller.userModel.value.backgroundFile,
-                fit: BoxFit.cover,
+            Opacity(
+              opacity: 0.5,
+              child: Container(
+                color: Colors.transparent,
+                child: controller.isEdituserModel.value
+                    ?_editBackgroundImageWidget()
+                    :_backgroundImageWidget()
               ),
-            ),
-        ),
+            ),),
       ),
+    );
+  }
+
+  // ######### 백그라운드 이미지 관련
+  Widget _editBackgroundImageWidget(){
+    return controller.userModel.value.backgroundFile == null
+        ? _backgroundImageWidget()
+        : Image.file(
+      controller.userModel.value.backgroundFile,
+      fit: BoxFit.cover,
+    );
+  }
+
+  Widget _backgroundImageWidget(){
+    return controller.userModel.value.backgroundUrl == null
+        ? Container()
+        : Image.network(
+      controller.userModel.value.backgroundUrl,
+      fit: BoxFit.cover,
     );
   }
 
@@ -343,7 +361,7 @@ class Profile extends GetView<ProfileController> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomPadding: false, // 이걸하면 텍스트 수정페이지(TextEditWidget)에서-> 수정할 때 움직이지 않는다.
-      backgroundColor: Color(0xff3f3f3f),
+      backgroundColor: Colors.black,
       body: Obx(()=>
         Container(
           child: Stack(

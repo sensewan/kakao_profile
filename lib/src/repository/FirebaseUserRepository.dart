@@ -47,4 +47,15 @@ class FirebaseUserRepository {
 
   }
 
+  // 프로필이미지 변경하기                                             ↱ avatar_url 임
+  static void updateImageUrl(String docId, String downloadUrl, String fieldName){
+
+    CollectionReference users = FirebaseFirestore.instance.collection("kakaoUsers");
+    // ↱ docId 해당하는 것을 select 함
+    users.doc(docId).update({fieldName: downloadUrl});
+
+  }
+
+
+
 }

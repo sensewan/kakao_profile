@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:kakao_profile/src/controller/ImageCropController.dart';
 import 'package:kakao_profile/src/model/UserModel.dart';
+import 'package:kakao_profile/src/repository/FirebaseStorageRepository.dart';
 import 'package:kakao_profile/src/repository/FirebaseUserRepository.dart';
 
 // 배경화면 변경인지 썸네일 변경인지 알기 위한 enum
@@ -21,6 +23,8 @@ class ProfileController extends GetxController{
   UserModel originModel = UserModel();
 
   Rx<UserModel> userModel = UserModel().obs;
+
+  FirebaseStorageRepository _firebaseStorageRepository = FirebaseStorageRepository();
 
 
   //                           ↱ 구글 로그인된 유저정보 받음
@@ -127,8 +131,69 @@ class ProfileController extends GetxController{
   // 프로필 저장하기 (한 번에 처리 할 수 있지만, 만약 파일저장이 오류로 인해 안 될경우를 대비해 나눠서 함)
   void save() {
     originModel = userModel.value;
+
+    // ↱프로필 변경에서 ##프로필## 이미지 파일 첨부할 경우-> 프로필 이미지 저장
+    if(originModel.avatarFile != null){
+      UploadTask task = _firebaseStorageRepository.uploadImageFile(originModel.uid, "profile", originModel.avatarFile);
+
+      // ↱스트림을 받을 수 있음
+      task.snapshotEvents.listen((event) async{
+        //  ↱ 업로드 할 때 totalBytes가 되면 (즉 완료가 되면 실행)
+        if(event.bytesTransferred == event.totalBytes){
+          //   ↱ 업로드된 이미지의 주소를 구할 수 있음
+          String downloadUrl = await event.ref.getDownloadURL();
+
+          // ↱ 업로드한 이미지 내부 model에 적용하기
+          _updateProfileImageUrl(downloadUrl);
+          // ↱ 파이어베이스 유저정보에 이미지변경한 것 적용하기
+          FirebaseUserRepository.updateImageUrl(originModel.docId, downloadUrl, "avatar_url");
+        }
+
+        print("프로필이미지 event.bytesTransferred--> ${event.bytesTransferred}");
+      });
+
+    }
+
+    // ↱프로필 변경에서 ##백그라운드## 이미지 파일 첨부할 경우-> 백그라운드 이미지 저장
+    if(originModel.backgroundFile != null){
+      //
+      UploadTask task = _firebaseStorageRepository.uploadImageFile(originModel.uid, "background", originModel.backgroundFile);
+      // ↱스트림을 받을 수 있음
+      task.snapshotEvents.listen((event) async{
+        //  ↱ 업로드 할 때 totalBytes가 되면 (즉 완료가 되면 실행)
+        if(event.bytesTransferred == event.totalBytes){
+          //   ↱ 업로드된 이미지의 주소를 구할 수 있음
+          String downloadUrl = await event.ref.getDownloadURL();
+
+          // ↱ 업로드한 이미지 내부 model에 적용하기
+          _updateBackgroundImageUrl(downloadUrl);
+          // ↱ 파이어베이스 유저정보에 이미지변경한 것 적용하기
+          FirebaseUserRepository.updateImageUrl(originModel.docId, downloadUrl, "background_url");
+        }
+
+        print("프로필이미지 event.bytesTransferred--> ${event.bytesTransferred}");
+      });
+    }
+
+
+
+    // ↱ 파이어베이스에 프로필 네임 및 설명 업데이트 (파일 첨부 없는 경우)
     FirebaseUserRepository.updateData(originModel.docId, originModel);
     toggleEditProfile();
   }
+
+
+  // 업로드한 프로필 이미지의 주소를 적용하기
+  void _updateProfileImageUrl(String downloadUrl){
+    originModel.avatarUrl = downloadUrl;
+    userModel.update((val) {val.avatarUrl = downloadUrl;});
+  }
+
+  // 업로드한 백그라운드 이미지의 주소를 적용하기
+  void _updateBackgroundImageUrl(String downloadUrl){
+    originModel.backgroundUrl = downloadUrl;
+    userModel.update((val) {val.backgroundUrl = downloadUrl;});
+  }
+
 
 }
