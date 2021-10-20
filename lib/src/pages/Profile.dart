@@ -154,15 +154,10 @@ class Profile extends GetView<ProfileController> {
                 child: Container(
                   width: 100,
                   height: 100,
-                  child: controller.userModel.value.avatarFile == null
-                    ?Image.network(
-                      "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
-                      fit: BoxFit.cover, // 이미지 box에 꽉 채우기
-                    )
-                    :Image.file(
-                      controller.userModel.value.avatarFile,
-                      fit: BoxFit.cover,
-                    ),
+                  child: controller.isEdituserModel.value
+                    ?_editProfileImageWidget()
+                    :_profileImageWidget()
+
                 ),
               ),
             ),
@@ -190,6 +185,30 @@ class Profile extends GetView<ProfileController> {
       ),
     );
   }
+
+  // ### 프로필 이미지 변경 위젯 ###
+  Widget _editProfileImageWidget(){
+    return controller.userModel.value.avatarFile == null
+        ? _profileImageWidget()
+        : Image.file(
+            controller.userModel.value.avatarFile,
+            fit: BoxFit.cover,
+        );
+  }
+
+  // ### 이미지 보여주는 위젯  ###
+  Widget _profileImageWidget(){
+    return controller.userModel.value.avatarUrl == null
+        ? Image.network(
+            "https://thumbs.dreamstime.com/b/default-avatar-profile-icon-vector-social-media-user-portrait-176256935.jpg",
+            fit: BoxFit.cover, // 이미지 box에 꽉 채우기
+          )
+        :Image.network(
+          controller.userModel.value.avatarUrl,
+          fit: BoxFit.cover,
+        );
+  }
+
 
   // ### 프로필 이름, 설명 ###
   Widget _profileInfo(){

@@ -45,7 +45,7 @@ class ProfileController extends GetxController{
           createdTime: DateTime.now(),
           lastLoginTime: DateTime.now(),
         );
-        
+
         String docId = await FirebaseUserRepository.signUp(originModel);
         originModel.docId = docId;  // 파이어베이스 고유 id 키값 저장하기
       }
