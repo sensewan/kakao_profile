@@ -127,6 +127,7 @@ class ProfileController extends GetxController{
   // 프로필 저장하기 (한 번에 처리 할 수 있지만, 만약 파일저장이 오류로 인해 안 될경우를 대비해 나눠서 함)
   void save() {
     originModel = userModel.value;
+    FirebaseUserRepository.updateData(originModel.docId, originModel);
     toggleEditProfile();
   }
 

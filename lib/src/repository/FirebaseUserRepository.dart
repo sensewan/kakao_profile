@@ -37,4 +37,14 @@ class FirebaseUserRepository {
 
   }
 
+
+  // 유저정보 업데이트하기
+  static void updateData(String docId, UserModel user){
+
+    CollectionReference users = FirebaseFirestore.instance.collection("kakaoUsers");
+    // ↱ docId 해당하는 것을 select 함
+    users.doc(docId).update(user.toMap());
+
+  }
+
 }
